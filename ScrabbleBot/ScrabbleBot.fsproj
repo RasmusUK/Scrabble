@@ -28,6 +28,7 @@ Group name: &lt;Your group name goes here&gt; (optional since this is hosted in 
     <Compile Include="Parser.fs" />
     <Compile Include="Scrabble.fsi" />
     <Compile Include="Scrabble.fs" />
+    <Compile Include="Dict.fs" />
   </ItemGroup>
 
   <ItemGroup>
