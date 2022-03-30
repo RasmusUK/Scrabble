@@ -994,11 +994,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
+      "projectUniqueName": "C:\\Git\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
       "projectName": "ScrabbleTemplate",
-      "projectPath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
+      "projectPath": "C:\\Git\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
       "packagesPath": "C:\\Users\\rasmu\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate\\obj\\",
+      "outputPath": "C:\\Git\\Scrabble\\ScrabbleTemplate\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\rasmu\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -1016,8 +1016,8 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\ScrabbleBot.fsproj": {
-              "projectPath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\ScrabbleBot.fsproj"
+            "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj": {
+              "projectPath": "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj"
             }
           }
         }

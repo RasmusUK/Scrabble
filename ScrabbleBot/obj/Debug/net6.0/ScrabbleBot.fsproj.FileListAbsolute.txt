@@ -6,3 +6,11 @@ C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\Scrabble
 C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfo.fs
 C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\YourIdGoesHere.dll
 C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\YourIdGoesHere.pdb
+C:\Git\Scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.deps.json
+C:\Git\Scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.dll
+C:\Git\Scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.pdb
+C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.fsproj.AssemblyReference.cache
+C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfoInputs.cache
+C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfo.fs
+C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.dll
+C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.pdb

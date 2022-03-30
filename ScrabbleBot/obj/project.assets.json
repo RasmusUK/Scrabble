@@ -923,11 +923,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\ScrabbleBot.fsproj",
+      "projectUniqueName": "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
       "projectName": "TheStandardGroup",
-      "projectPath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\ScrabbleBot.fsproj",
+      "projectPath": "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
       "packagesPath": "C:\\Users\\rasmu\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\obj\\",
+      "outputPath": "C:\\Git\\Scrabble\\ScrabbleBot\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\rasmu\\AppData\\Roaming\\NuGet\\NuGet.Config",

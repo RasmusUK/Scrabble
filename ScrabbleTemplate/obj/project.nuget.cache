@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "H02rzvC+1x6dk4DxYiZZuk47drSwfVev9qEugwevXy1N49b5JPcRqMYcodOk2UFuw7Xz8D7Uqz1i9hAiGKvRWA==",
+  "dgSpecHash": "o5L/cE1JvyBpZj5Q5hYeknXTuoMuYn/1Nn1YAa7fivIK0un8/yyytF32CgcL6RUBHXx8BVc6HGsHYl6e5dA1Ig==",
   "success": true,
-  "projectFilePath": "C:\\Users\\rasmu\\Google Drev\\ITU\\4. Semester\\FP\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
+  "projectFilePath": "C:\\Git\\Scrabble\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
   "expectedPackageFiles": [
     "C:\\Users\\rasmu\\.nuget\\packages\\fparsec\\1.1.1\\fparsec.1.1.1.nupkg.sha512",
     "C:\\Users\\rasmu\\.nuget\\packages\\fsharp.core\\6.0.3\\fsharp.core.6.0.3.nupkg.sha512",
