@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>YourIdGoesHere</id>
+    <version>1.0.0</version>
+    <authors>Your names go here (optional since this is hosted in a public Github repository)</authors>
+    <description>Scrabble Bot for Functional Programming 2022
+
+Group name: &lt;Your group name goes here&gt; (optional since this is hosted in a public Github repository)</description>
+    <repository url="https://github.com/jesper-bengtson/Scrabble-FP2022/" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="FParsec" version="1.1.1" exclude="Build,Analyzers" />
+        <dependency id="FSharp.Core" version="6.0.3" exclude="Build,Analyzers" />
+        <dependency id="ScrabbleUtil" version="1.0.12" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\bin\Debug\net6.0\YourIdGoesHere.dll" target="lib\net6.0\YourIdGoesHere.dll" />
+  </files>
+</package>

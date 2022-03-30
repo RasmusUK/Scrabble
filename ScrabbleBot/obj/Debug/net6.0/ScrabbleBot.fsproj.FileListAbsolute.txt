@@ -1,0 +1,8 @@
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\bin\Debug\net6.0\YourIdGoesHere.deps.json
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\bin\Debug\net6.0\YourIdGoesHere.dll
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\bin\Debug\net6.0\YourIdGoesHere.pdb
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.fsproj.AssemblyReference.cache
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfoInputs.cache
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfo.fs
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\YourIdGoesHere.dll
+C:\Users\rasmu\Google Drev\ITU\4. Semester\FP\Scrabble\ScrabbleTemplate\ScrabbleBot\obj\Debug\net6.0\YourIdGoesHere.pdb
