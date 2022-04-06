@@ -76,8 +76,10 @@ module Scrabble =
 
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
-                (* Successful play by you. Update your state (remove old tiles, add the new ones, change turn, etc) *)
-                let st' = st // This state needs to be updated
+                let placedLetterIDs = List.fold (fun x y -> fst(snd(y)) :: x) [] ms
+                let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
+                let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
+                let st' = {st with hand = hand'}
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 (* Successful play by other player. Update your state *)
