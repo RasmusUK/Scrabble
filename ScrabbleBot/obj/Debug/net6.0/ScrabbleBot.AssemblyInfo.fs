@@ -7,13 +7,11 @@ open System
 open System.Reflection
 
 
-[<assembly: System.Reflection.AssemblyCompanyAttribute("IT University of Copenhagen")>]
+[<assembly: System.Reflection.AssemblyCompanyAttribute("ScrabbleBot")>]
 [<assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")>]
-[<assembly: System.Reflection.AssemblyDescriptionAttribute("Scrabble Bot for Functional Programming 2022\r\n\r\nGroup name: <The standard group> (optional since this is hosted in a public Github repository)")>]
 [<assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")>]
 [<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")>]
-[<assembly: System.Reflection.AssemblyProductAttribute("TheStandardGroupBot")>]
-[<assembly: System.Reflection.AssemblyTitleAttribute("TheStandardGroup")>]
+[<assembly: System.Reflection.AssemblyProductAttribute("ScrabbleBot")>]
+[<assembly: System.Reflection.AssemblyTitleAttribute("ScrabbleBot")>]
 [<assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")>]
-[<assembly: System.Reflection.AssemblyMetadataAttribute("RepositoryUrl", "https://github.com/jesper-bengtson/Scrabble-FP2022/")>]
 do()

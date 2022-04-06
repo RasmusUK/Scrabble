@@ -8,7 +8,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
-        "projectName": "TheStandardGroup",
+        "projectName": "ScrabbleBot",
         "projectPath": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
         "packagesPath": "C:\\Users\\thorl\\.nuget\\packages\\",
         "outputPath": "W:\\Code\\scrabble\\ScrabbleBot\\obj\\",
@@ -101,6 +101,16 @@
               "include": "Runtime, Compile, Build, Native, Analyzers, BuildTransitive",
               "target": "Package",
               "version": "[6.0.3, )",
+              "generatePathProperty": true
+            },
+            "FSharp.Quotations.Evaluator": {
+              "target": "Package",
+              "version": "[2.1.0, )",
+              "generatePathProperty": true
+            },
+            "FsPickler": {
+              "target": "Package",
+              "version": "[5.3.2, )",
               "generatePathProperty": true
             }
           },

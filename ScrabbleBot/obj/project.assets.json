@@ -157,7 +157,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
-      "projectName": "TheStandardGroup",
+      "projectName": "ScrabbleBot",
       "projectPath": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
       "packagesPath": "C:\\Users\\thorl\\.nuget\\packages\\",
       "outputPath": "W:\\Code\\scrabble\\ScrabbleBot\\obj\\",

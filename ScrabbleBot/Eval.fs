@@ -37,8 +37,7 @@ module internal Eval
        | Conj of bExp * bExp  (* boolean conjunction *)
 
        | IsVowel of cExp      (* check for vowel *)
-       | IsLetter of cExp     (* check for letter *)
-       | IsDigit of cExp      (* check for digit *)
+       | IsConsonant of cExp  (* check for constant *)
 
     let (.+.) a b = Add (a, b)
     let (.-.) a b = Sub (a, b)

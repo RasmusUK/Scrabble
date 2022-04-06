@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "7ZhQ2xIlRhTfNlEH8IDZNuVN0AV7cRQBXTbuFR0mopQEZSXeS6CqHw/1GsxEmUUYpmcYSaaIX1ySBZp9f/EuJg==",
+  "dgSpecHash": "x+8TmF9b5w8JDJIDfwxPSn/S9Bm52OaSpoIg0a+A1wQd/oXL5m9xUS8qNlEn+2rIxYWHmlC7I5iJFFDHLDLjYg==",
   "success": true,
   "projectFilePath": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
   "expectedPackageFiles": [
