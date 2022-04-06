@@ -1,4 +1,4 @@
-﻿module internal Dictionary
+﻿module Dictionary
 
     type Dict =
         | Node of bool * Map<char,Dict> 

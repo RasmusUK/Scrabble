@@ -1,4 +1,4 @@
-﻿module internal Dictionary
+﻿module Dictionary
     [<Sealed>]
     type Dict
     val empty : unit -> Dict
