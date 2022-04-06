@@ -12,13 +12,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Oxyphenbutazone" Version="1.0.11" />
-    <PackageReference Include="ScrabbleServer" Version="1.0.19" />
     <PackageReference Update="FSharp.Core" Version="6.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ScrabbleBot\ScrabbleBot.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Oxyphenbutazone, Version=1.0.11.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL\Oxyphenbutazone.dll</HintPath>
+    </Reference>
+    <Reference Include="ScrabbleServer, Version=1.0.20.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL\ScrabbleServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ScrabbleUtil, Version=1.0.12.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL\ScrabbleUtil.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

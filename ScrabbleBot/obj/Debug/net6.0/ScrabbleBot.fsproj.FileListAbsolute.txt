@@ -14,3 +14,13 @@ C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfoInputs.cach
 C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfo.fs
 C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.dll
 C:\Git\Scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.pdb
+W:\Code\scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.deps.json
+W:\Code\scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.dll
+W:\Code\scrabble\ScrabbleBot\bin\Debug\net6.0\TheStandardGroup.pdb
+W:\Code\scrabble\ScrabbleBot\bin\Debug\net6.0\ScrabbleUtil.dll
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.fsproj.AssemblyReference.cache
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfoInputs.cache
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.AssemblyInfo.fs
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\ScrabbleBot.fsproj.CopyComplete
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.dll
+W:\Code\scrabble\ScrabbleBot\obj\Debug\net6.0\TheStandardGroup.pdb
