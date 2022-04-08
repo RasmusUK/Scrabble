@@ -912,19 +912,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\thorl\\.nuget\\packages\\": {}
+    "/Users/thorll/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "W:\\Code\\scrabble\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
+      "projectUniqueName": "/Volumes/T7/Code/Scrabble/ScrabbleTemplate/ScrabbleTemplate.fsproj",
       "projectName": "ScrabbleTemplate",
-      "projectPath": "W:\\Code\\scrabble\\ScrabbleTemplate\\ScrabbleTemplate.fsproj",
-      "packagesPath": "C:\\Users\\thorl\\.nuget\\packages\\",
-      "outputPath": "W:\\Code\\scrabble\\ScrabbleTemplate\\obj\\",
+      "projectPath": "/Volumes/T7/Code/Scrabble/ScrabbleTemplate/ScrabbleTemplate.fsproj",
+      "packagesPath": "/Users/thorll/.nuget/packages/",
+      "outputPath": "/Volumes/T7/Code/Scrabble/ScrabbleTemplate/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\thorl\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/thorll/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
@@ -936,8 +936,8 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj": {
-              "projectPath": "W:\\Code\\scrabble\\ScrabbleBot\\ScrabbleBot.fsproj"
+            "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj": {
+              "projectPath": "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj"
             }
           }
         }
@@ -979,7 +979,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\thorl\\.dotnet\\sdk\\6.0.201\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
       }
     }
   }
