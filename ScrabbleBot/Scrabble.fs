@@ -66,11 +66,9 @@ module Scrabble =
     let findChar i = Convert.ToChar(i + 64u)
     
     let charToValue (c:char) = Convert.ToUInt32(c) - 64u
-    
-    let validateWord lst = true
-    
+        
     let legalMove (partialWord:(coord * char)list) anchor =
-        let aux = List.map (fun (x,_) -> x) partialWord
+        let aux = List.map fst partialWord
         match List.tryFind (fun x -> x = anchor) aux with
         | Some _ -> true
         | _ -> false
@@ -91,7 +89,7 @@ module Scrabble =
         isValid startPos state.dict false                
     
     let allValidChars node =
-        let letters = seq {for i in 1u..26u -> findChar i} |> Seq.toList
+        let letters = seq [1u..26u] |> Seq.map findChar |> Seq.toList
         let rec aux validLetters = function
             | [] -> validLetters
             | x :: xs ->
