@@ -36,7 +36,7 @@ module RegEx =
 
     let printHand pieces hand =
         hand |>
-        MultiSet.fold (fun _ x i -> forcePrint (sprintf "%d -> (%A, %d)\n" x (Map.find x pieces) i)) ()
+        MultiSet.fold (fun _ x i -> forcePrint $"%d{x} -> (%A{Map.find x pieces}, %d{i})\n") ()
 
 module State = 
     // Make sure to keep your state localised in this module. It makes your life a whole lot easier.
@@ -67,26 +67,29 @@ module Scrabble =
     
     let charToValue (c:char) = Convert.ToUInt32(c) - 64u
         
-    let legalMove (partialWord:(coord * char)list) anchor =
-        let aux = List.map fst partialWord
-        match List.tryFind (fun x -> x = anchor) aux with
-        | Some _ -> true
-        | _ -> false
-    let crossCheck square letter (state: State.state) i j=
+    let legalMove (partialWord:(coord * char)list) anchor count =
+        if count > 0 then
+            let aux = List.map fst partialWord
+            match List.tryFind (fun x -> x = anchor) aux with
+            | Some _ -> true
+            | _ -> false
+        else false    
+    let crossCheck square letter (state: State.state) i j =
         let actualBoard' = Map.add square letter state.actualBoard
-        let rec findStart pos prevPos =
-            match Map.tryFind pos actualBoard' with
-            | Some _ -> findStart (fst pos - i, snd pos - j) pos
-            | None -> prevPos
-        let startPos = findStart square square
-        let rec isValid pos dict b =
+        let rec findStart pos =
+            let pos' = (fst pos - i, snd pos - j)
+            match Map.tryFind pos' actualBoard' with
+            | Some _ -> findStart pos' 
+            | None -> pos
+        let startPos = findStart square
+        let rec isValid pos dict b count =
             match Map.tryFind pos actualBoard' with
             | Some c ->      
                 match step c dict with
-                | Some (b,d') -> isValid (fst pos + i, snd pos + j) d' b
+                | Some (b,d') -> isValid (fst pos + i, snd pos + j) d' b (count + 1)
                 | None -> false
-            | None -> b
-        isValid startPos state.dict false                
+            | None -> if count = 1 then true else b
+        isValid startPos state.dict false 0           
     
     let allValidChars node =
         let letters = seq [1u..26u] |> Seq.map findChar |> Seq.toList
@@ -100,19 +103,19 @@ module Scrabble =
         
     let mutable legalMoves = List.empty
     
-    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j =
+    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count =
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
             | None -> true
         if isVacant then
-            if squareIsTerminal && legalMove partialWord anchor then
+            if squareIsTerminal && legalMove partialWord anchor count then
                 legalMoves <- partialWord :: legalMoves     
             let validLetters = allValidChars node
             let rec aux = function
                 | [] -> ()
                 | letter :: tail -> 
-                    if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state i j then
+                    if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state i j && crossCheck square letter state j i then
                         let hand' = MultiSet.removeSingle (charToValue letter) state.hand
                         let actualBoard' = Map.add square letter state.actualBoard
                         let state' = {state with hand = hand'; actualBoard = actualBoard' }
@@ -120,7 +123,7 @@ module Scrabble =
                         | Some (b, node') -> 
                             let partialWord' = (square, letter) :: partialWord
                             let square' = (fst square + i, snd square + j)
-                            extend partialWord' node' square' state' b anchor i j
+                            extend partialWord' node' square' state' b anchor i j (count + 1)
                         | None _ -> ()
                     aux tail
             aux validLetters                  
@@ -130,28 +133,54 @@ module Scrabble =
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
                 let square' = (fst square + i, snd square + j)
-                extend partialWord' node' square' state b anchor i j
+                extend partialWord' node' square' state b anchor i j count
             | None _ -> ()
  
     let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0)
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1)
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0)
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0)
                           
-    let playGame cstream pieces (st : State.state) =
+    let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
 
         let rec aux (st : State.state) =
             Print.printHand pieces (State.hand st)
     
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
-            let input =  System.Console.ReadLine()
+            //let input =  System.Console.ReadLine()
+            let hand = MultiSet.toList st.hand
+            if st.actualBoard.IsEmpty then 
+                for move in hand do
+                    let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand [move]
+                    let ab = [((0,0), findChar move)] |> Map.ofList
+                    let st = {st with hand = hand; actualBoard = ab}
+                    st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false) 
+            else
+                st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false) 
+
+             
+            let sorted = List.sortByDescending (fun (x:(coord*char) list) -> x.Length ) legalMoves
+            let best = sorted.Head
+            let mutable input = ""
+            for tuple in best do
+                match Map.tryFind (fst tuple) st.actualBoard with
+                | Some _ -> ()
+                | None -> 
+                    let pid = snd tuple |> charToValue
+                    let char = snd tuple |> Char.ToString
+                    let pv = Map.find pid pieces |> Set.maxElement |> snd
+                    let x = fst (fst tuple)
+                    let y = snd (fst tuple)
+                    input <-  input + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} "
+            input <- input.Trim()
+            legalMoves <- []
             let move = RegEx.parseMove input
 
-            debugPrint (sprintf "Player %d -> Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
+            debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             send cstream (SMPlay move)
 
             let msg = recv cstream
-            debugPrint (sprintf "Player %d <- Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
+            debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
 
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
@@ -172,8 +201,8 @@ module Scrabble =
                 let st' = st // This state needs to be updated
                 aux st'
             | RCM (CMGameOver _) -> ()
-            | RCM a -> failwith (sprintf "not implmented: %A" a)
-            | RGPE err -> printfn "Gameplay Error:\n%A" err; aux st
+            | RCM a -> failwith $"not implmented: %A{a}"
+            | RGPE err -> printfn $"Gameplay Error:\n%A{err}"; aux st
 
 
         aux st
@@ -189,12 +218,12 @@ module Scrabble =
             (timeout : uint32 option) 
             (cstream : Stream) =
         debugPrint 
-            (sprintf "Starting game!
-                      number of players = %d
-                      player id = %d
-                      player turn = %d
-                      hand =  %A
-                      timeout = %A\n\n" numPlayers playerNumber playerTurn hand timeout)
+            $"Starting game!
+                      number of players = %d{numPlayers}
+                      player id = %d{playerNumber}
+                      player turn = %d{playerTurn}
+                      hand =  %A{hand}
+                      timeout = %A{timeout}\n\n"
 
         //let dict = dictf true // Uncomment if using a gaddag for your dictionary
         let dict = dictf false // Uncomment if using a trie for your dictionary
