@@ -69,7 +69,11 @@ module Scrabble =
     
     let validateWord lst = true
     
-    let legalMove (partialWord:(coord * char)list) = true
+    let legalMove (partialWord:(coord * char)list) anchor =
+        let aux = List.map (fun (x,_) -> x) partialWord
+        match List.tryFind (fun x -> x = anchor) aux with
+        | Some _ -> true
+        | _ -> false
     let crossCheck square letter state = true
     
     let allValidChars node =
@@ -84,9 +88,9 @@ module Scrabble =
         
     let mutable legalMoves = List.empty
     
-    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal =
+    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor =
         let aux =
-            if squareIsTerminal && legalMove partialWord then
+            if squareIsTerminal && legalMove partialWord anchor then
                 legalMoves <- partialWord :: legalMoves         
         let isVacant =
             match Map.tryFind square state.actualBoard with
@@ -104,7 +108,7 @@ module Scrabble =
                     | Some (b, node') -> 
                         let partialWord' = (square, letter) :: partialWord
                         let square' = (fst square + 1, snd square)
-                        ExtendRight partialWord' node' square' state' b
+                        ExtendRight partialWord' node' square' state' b anchor
                     | None _ -> ()                
         else
             let l = state.actualBoard[square]
@@ -112,24 +116,12 @@ module Scrabble =
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
                 let square' = (fst square + 1, snd square)
-                ExtendRight partialWord' node' square' state b
+                ExtendRight partialWord' node' square' state b anchor
             | None _ -> ()
  
-    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal=
-        ExtendRight partialWord dict square state isTerminal
-        if limit > 0 then
-            let validLetters = allValidChars dict
-            for letter in validLetters do
-                if MultiSet.contains (charToValue letter) state.hand then
-                    let hand' = MultiSet.removeSingle (charToValue letter) state.hand
-                    let actualBoard' = Map.add square letter state.actualBoard
-                    let state' = {state with hand = hand'; actualBoard = actualBoard' }
-                    match step letter dict with
-                    | Some (b, node') -> 
-                        let partialWord' = (square, letter) :: partialWord
-                        let square' = (fst square - 1, snd square)
-                        LeftPart partialWord' node' square' (limit - 1) state' b
-                    | None _ -> ()  
+    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
+        for i in 0..limit do
+            ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square
                           
     let playGame cstream pieces (st : State.state) =
 
@@ -154,7 +146,7 @@ module Scrabble =
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
                 let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
                 for coord in st'.actualBoard do
-                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false
+                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false 
                 legalMoves <- []   
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
