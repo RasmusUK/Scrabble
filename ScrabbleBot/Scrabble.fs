@@ -74,7 +74,7 @@ module Scrabble =
         | _ -> false
     let crossCheck square letter (state: State.state) i j=
         let actualBoard' = Map.add square letter state.actualBoard
-        let rec findStart pos prevPos=
+        let rec findStart pos prevPos =
             match Map.tryFind pos actualBoard' with
             | Some _ -> findStart (fst pos - i, snd pos - j) pos
             | None -> prevPos
@@ -159,14 +159,12 @@ module Scrabble =
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
                 let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
-                for coord in st'.actualBoard do
-                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false 
+                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> LeftPart [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
                 legalMoves <- []   
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 let st' = {st with actualBoard = updateActualBoard st ms}
-                for coord in st'.actualBoard do
-                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false 
+                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> LeftPart [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
                 legalMoves <- []  
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
