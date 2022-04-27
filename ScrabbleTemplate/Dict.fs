@@ -23,14 +23,26 @@
             | Node (_, x), d -> search (valueFromMap s.[d] x) s (d+1)
          search d s 0
     
-    let step (c:char) (d:Dict) =
+    let rec step (c:char) (d:Dict) =
         match d with
         | Node (_,y) ->
             let d' = valueFromMap c y
             match d' with
-                | Node (x,_) when x = true -> Some(x, d')
-                | Leaf x when x = true -> Some(x, d')
-                | _ -> None
+                | Node (x,_) when x = true -> Some(true, d')
+                | Node _ -> Some(false, d')
+                | Leaf x when x = true -> Some(true, d')
+                | _ -> None 
         | Leaf _ -> None
         
-  
+    
+    let d = empty()
+    let d' = insert "tulip" d
+    
+    let a = step 't' d'
+    let a' = snd a.Value
+    let b = step 'u' a'
+    let b' = snd b.Value
+    let c = step 'l' b'
+    let c' = snd c.Value
+    let e = step 'i' c'
+    let e' = snd e.Value

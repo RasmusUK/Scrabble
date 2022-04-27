@@ -87,8 +87,7 @@ module Scrabble =
     let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal =
         let aux =
             if squareIsTerminal && legalMove partialWord then
-                partialWord :: legalMoves
-            else legalMoves
+                legalMoves <- partialWord :: legalMoves         
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
@@ -116,12 +115,8 @@ module Scrabble =
                 ExtendRight partialWord' node' square' state b
             | None _ -> ()
  
-    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) =
-        let x =
-            match step state.actualBoard[square] dict with
-            | Some (b,_) -> b
-            | None -> false        
-        ExtendRight partialWord dict square state x
+    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal=
+        ExtendRight partialWord dict square state isTerminal
         if limit > 0 then
             let validLetters = allValidChars dict
             for letter in validLetters do
@@ -130,10 +125,10 @@ module Scrabble =
                     let actualBoard' = Map.add square letter state.actualBoard
                     let state' = {state with hand = hand'; actualBoard = actualBoard' }
                     match step letter dict with
-                    | Some (_, node') -> 
+                    | Some (b, node') -> 
                         let partialWord' = (square, letter) :: partialWord
-                        let square' = (fst square + 1, snd square)
-                        LeftPart partialWord' node' square' (limit - 1) state' 
+                        let square' = (fst square - 1, snd square)
+                        LeftPart partialWord' node' square' (limit - 1) state' b
                     | None _ -> ()  
                           
     let playGame cstream pieces (st : State.state) =
@@ -159,13 +154,13 @@ module Scrabble =
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
                 let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
                 for coord in st'.actualBoard do
-                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st'   
+                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false
                 legalMoves <- []   
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 let st' = {st with actualBoard = updateActualBoard st ms}
                 for coord in st'.actualBoard do
-                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st'   
+                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st' false 
                 legalMoves <- []  
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->

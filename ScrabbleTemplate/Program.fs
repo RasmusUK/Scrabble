@@ -48,18 +48,14 @@ let main argv =
     let dictAPI =
         // Uncomment if you have implemented a dictionary. last element None if you have not implemented a GADDAG
         Some (Dictionary.empty, Dictionary.insert, Dictionary.step, None) 
-        
-
-    // Uncomment this line to call your client
     
     let (dictionary, time) =
         time (fun () -> ScrabbleUtil.Dictionary.mkDict words dictAPI)
+        
     let players    = [("Alex",dictionary, Scrabble.startGame)]
-    //let players = spawnMultiples "AI" dictionary Oxyphenbutazone.Scrabble.startGame 4
-
 
     do ScrabbleServer.Comm.startGame 
-          board dictionary handSize timeout tiles seed port players
+        board dictionary handSize timeout tiles seed port players
     
     ScrabbleUtil.DebugPrint.forcePrint ("Server has terminated. Press Enter to exit program.\n")
     System.Console.ReadLine () |> ignore
