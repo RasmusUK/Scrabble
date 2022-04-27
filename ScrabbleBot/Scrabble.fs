@@ -100,7 +100,7 @@ module Scrabble =
         
     let mutable legalMoves = List.empty
     
-    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j =
+    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j =
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
@@ -120,7 +120,7 @@ module Scrabble =
                         | Some (b, node') -> 
                             let partialWord' = (square, letter) :: partialWord
                             let square' = (fst square + i, snd square + j)
-                            ExtendRight partialWord' node' square' state' b anchor i j
+                            extend partialWord' node' square' state' b anchor i j
                         | None _ -> ()
                     aux tail
             aux validLetters                  
@@ -130,12 +130,12 @@ module Scrabble =
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
                 let square' = (fst square + i, snd square + j)
-                ExtendRight partialWord' node' square' state b anchor i j
+                extend partialWord' node' square' state b anchor i j
             | None _ -> ()
  
-    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
-        [0..limit] |> List.iter(fun i -> ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square 1 0)
-        [0..limit] |> List.iter(fun i -> ExtendRight partialWord dict (fst square, snd square - i) state isTerminal square 0 1)
+    let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0)
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1)
                           
     let playGame cstream pieces (st : State.state) =
 
@@ -159,12 +159,12 @@ module Scrabble =
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
                 let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
-                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> LeftPart [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
+                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
                 legalMoves <- []   
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 let st' = {st with actualBoard = updateActualBoard st ms}
-                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> LeftPart [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
+                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
                 legalMoves <- []  
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
