@@ -103,27 +103,29 @@ module Scrabble =
     let mutable legalMoves = List.empty
     
     let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j =
-        let aux =
-            if squareIsTerminal && legalMove partialWord anchor then
-                legalMoves <- partialWord :: legalMoves         
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
             | None -> true
         if isVacant then
-            aux |> ignore
+            if squareIsTerminal && legalMove partialWord anchor then
+                legalMoves <- partialWord :: legalMoves     
             let validLetters = allValidChars node
-            for letter in validLetters do
-                if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state i j then
-                    let hand' = MultiSet.removeSingle (charToValue letter) state.hand
-                    let actualBoard' = Map.add square letter state.actualBoard
-                    let state' = {state with hand = hand'; actualBoard = actualBoard' }
-                    match step letter node with
-                    | Some (b, node') -> 
-                        let partialWord' = (square, letter) :: partialWord
-                        let square' = (fst square + i, snd square + j)
-                        ExtendRight partialWord' node' square' state' b anchor i j
-                    | None _ -> ()                
+            let rec aux = function
+                | [] -> ()
+                | letter :: tail -> 
+                    if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state i j then
+                        let hand' = MultiSet.removeSingle (charToValue letter) state.hand
+                        let actualBoard' = Map.add square letter state.actualBoard
+                        let state' = {state with hand = hand'; actualBoard = actualBoard' }
+                        match step letter node with
+                        | Some (b, node') -> 
+                            let partialWord' = (square, letter) :: partialWord
+                            let square' = (fst square + i, snd square + j)
+                            ExtendRight partialWord' node' square' state' b anchor i j
+                        | None _ -> ()
+                    aux tail
+            aux validLetters                  
         else
             let l = state.actualBoard[square]
             match step l node with
@@ -134,9 +136,8 @@ module Scrabble =
             | None _ -> ()
  
     let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
-        for i in 0..limit do
-            ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square 1 0
-            ExtendRight partialWord dict (fst square, snd square - i) state isTerminal square 0 1
+        [0..limit] |> List.iter(fun i -> ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square 1 0)
+        [0..limit] |> List.iter(fun i -> ExtendRight partialWord dict (fst square, snd square - i) state isTerminal square 0 1)
                           
     let playGame cstream pieces (st : State.state) =
 
