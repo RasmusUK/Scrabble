@@ -27,11 +27,10 @@
         match d with
         | Node (_,y) ->
             let d' = valueFromMap c y
-            let b = match d' with
-                    | Node (x,_) when x = true -> true
-                    | Leaf x when x = true -> true
-                    | _ -> false
-            Some(b,d')
+            match d' with
+                | Node (x,_) when x = true -> Some(x, d')
+                | Leaf x when x = true -> Some(x, d')
+                | _ -> None
         | Leaf _ -> None
         
   

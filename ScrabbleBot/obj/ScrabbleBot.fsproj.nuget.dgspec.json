@@ -1,26 +1,29 @@
 {
   "format": 1,
   "restore": {
-    "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj": {}
+    "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj": {}
   },
   "projects": {
-    "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj": {
+    "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj",
+        "projectUniqueName": "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
         "projectName": "ScrabbleBot",
-        "projectPath": "/Volumes/T7/Code/Scrabble/ScrabbleBot/ScrabbleBot.fsproj",
-        "packagesPath": "/Users/thorll/.nuget/packages/",
-        "outputPath": "/Volumes/T7/Code/Scrabble/ScrabbleBot/obj/",
+        "projectPath": "C:\\Git\\Scrabble\\ScrabbleBot\\ScrabbleBot.fsproj",
+        "packagesPath": "C:\\Users\\rasmu\\.nuget\\packages\\",
+        "outputPath": "C:\\Git\\Scrabble\\ScrabbleBot\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/thorll/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\rasmu\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.pkg.github.com/jesper-bengtson/index.json": {}
         },
         "frameworks": {
           "net6.0": {
@@ -60,7 +63,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.104\\RuntimeIdentifierGraph.json"
         }
       }
     }

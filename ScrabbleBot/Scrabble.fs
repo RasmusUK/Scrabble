@@ -1,5 +1,7 @@
 ﻿namespace YourClientName
 
+open System
+open Microsoft.FSharp.Collections
 open ScrabbleUtil
 open ScrabbleUtil.Dictionary
 open ScrabbleUtil.ServerCommunication
@@ -7,7 +9,6 @@ open ScrabbleUtil.ServerCommunication
 open System.IO
 
 open ScrabbleUtil.DebugPrint
-open StateMonad
 
 // The RegEx module is only used to parse human input. It is not used for the final product.
 
@@ -62,83 +63,84 @@ module Scrabble =
     open System.Threading
     let updateActualBoard (st:State.state) ms = List.fold (fun m x -> Map.add (fst x) (snd x |> snd |> fst) m) st.actualBoard ms
     
-    let findChar = function
-        | 1u -> 'A'
-        | 2u -> 'B'
-        | 3u -> 'C'
-        | 4u -> 'D'
-        | 5u -> 'E'
-        | 6u -> 'F'
-        | 7u -> 'G'
-        | 8u -> 'H'
-        | 9u -> 'I'
-        | 10u -> 'J'
-        | 11u -> 'K'
-        | 12u -> 'L'
-        | 13u -> 'M'
-        | 14u -> 'N'
-        | 15u -> 'O'
-        | 16u -> 'P'
-        | 17u -> 'Q'
-        | 18u -> 'R'
-        | 19u -> 'S'
-        | 20u -> 'T'
-        | 21u -> 'U'
-        | 22u -> 'V'
-        | 23u -> 'W'
-        | 24u -> 'X'
-        | 25u -> 'Y'
-        | 26u -> 'Z'
-        | _ -> '_'
+    let findChar i = Convert.ToChar(i + 64u)
+    
+    let charToValue (c:char) = Convert.ToUInt32(c) - 64u
     
     let validateWord lst = true
     
-    let rec findHWord (acc:(coord * char)list) board dict (hand:MultiSet.MultiSet<uint32>) =
-        let currentCoord = fst(acc.Head)
-        let nextCoord = (fst(currentCoord)+1,snd(currentCoord))
-        match Map.tryFind nextCoord board with
-        | Some c ->
-            match step c dict with
-            | Some (hasWord,dict') when hasWord = true ->
-                if validateWord ((nextCoord,c)::acc)
-                then Some ((nextCoord,c)::acc)
-                else findHWord ((nextCoord,c)::acc) board dict' hand // Goes to next char and tries to see if can add more
-            | Some (_,dict') -> findHWord ((nextCoord,c)::acc) board dict' hand
-            | None -> None
-        | None ->
-            MultiSet.fold (fun x y z ->
-                match step (findChar y) dict with
-                | Some (hasWord,dict') when hasWord = true ->
-                    if validateWord ((nextCoord,(findChar y))::acc)
-                    then Some ((nextCoord,(findChar y))::acc)
-                    else (findHWord ((nextCoord,(findChar y))::acc) board dict' (MultiSet.removeSingle y hand)) 
-                | Some (_,dict') -> (findHWord ((nextCoord,(findChar y))::acc) board dict' (MultiSet.removeSingle y hand))
-                | None -> None) (Some []) hand
-                // (findHWord ((nextCoord,(findChar y))::acc) board dict (MultiSet.removeSingle y hand))::x)
-               
+    let legalMove (partialWord:(coord * char)list) = true
+    let crossCheck square letter state = true
+    
+    let allValidChars node =
+        let letters = seq {for i in 1u..26u -> findChar i} |> Seq.toList
+        let rec aux validLetters = function
+            | [] -> validLetters
+            | x :: xs ->
+                match step x node with
+                | Some _ -> aux (x :: validLetters) xs
+                | None _ -> aux validLetters xs
+        aux [] letters
         
-    (*let findHorizontalWord (st:State.state) coord =
-        
-        let fstCharacter = st.actualBoard[coord]
-        let word = []
-        let rec aux character dict hand =
-            match step character dict with
-            | Some (hasWord,_) when hasWord = true -> Some word
-            | Some (_,dict') ->
-                match hand with
-                | [] -> None
-                | x::xs ->
-                    word @ (findChar x)
-                    aux (findChar x) dict' xs 
-            | None _ -> None
-        // aux (findChar (MultiSet.toList st.hand).Head) st.dict (MultiSet.toList st.hand).Tail
-        aux fstCharacter st.dict (MultiSet.toList st.hand)*)
-            
+    let mutable legalMoves = List.empty
+    
+    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal =
+        let aux =
+            if squareIsTerminal && legalMove partialWord then
+                partialWord :: legalMoves
+            else legalMoves
+        let isVacant =
+            match Map.tryFind square state.actualBoard with
+            | Some _ -> false
+            | None -> true
+        if isVacant then
+            aux |> ignore
+            let validLetters = allValidChars node
+            for letter in validLetters do
+                if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state then
+                    let hand' = MultiSet.removeSingle (charToValue letter) state.hand
+                    let actualBoard' = Map.add square letter state.actualBoard
+                    let state' = {state with hand = hand'; actualBoard = actualBoard' }
+                    match step letter node with
+                    | Some (b, node') -> 
+                        let partialWord' = (square, letter) :: partialWord
+                        let square' = (fst square + 1, snd square)
+                        ExtendRight partialWord' node' square' state' b
+                    | None _ -> ()                
+        else
+            let l = state.actualBoard[square]
+            match step l node with
+            | Some (b,node') ->
+                let partialWord' = (square, l) :: partialWord
+                let square' = (fst square + 1, snd square)
+                ExtendRight partialWord' node' square' state b
+            | None _ -> ()
+ 
+    let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) =
+        let x =
+            match step state.actualBoard[square] dict with
+            | Some (b,_) -> b
+            | None -> false        
+        ExtendRight partialWord dict square state x
+        if limit > 0 then
+            let validLetters = allValidChars dict
+            for letter in validLetters do
+                if MultiSet.contains (charToValue letter) state.hand then
+                    let hand' = MultiSet.removeSingle (charToValue letter) state.hand
+                    let actualBoard' = Map.add square letter state.actualBoard
+                    let state' = {state with hand = hand'; actualBoard = actualBoard' }
+                    match step letter dict with
+                    | Some (_, node') -> 
+                        let partialWord' = (square, letter) :: partialWord
+                        let square' = (fst square + 1, snd square)
+                        LeftPart partialWord' node' square' (limit - 1) state' 
+                    | None _ -> ()  
+                          
     let playGame cstream pieces (st : State.state) =
 
         let rec aux (st : State.state) =
             Print.printHand pieces (State.hand st)
-
+    
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
             let input =  System.Console.ReadLine()
@@ -156,9 +158,15 @@ module Scrabble =
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
                 let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
+                for coord in st'.actualBoard do
+                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st'   
+                legalMoves <- []   
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 let st' = {st with actualBoard = updateActualBoard st ms}
+                for coord in st'.actualBoard do
+                    LeftPart [] st'.dict coord.Key (MultiSet.size st'.hand |> int) st'   
+                legalMoves <- []  
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
                 (* Failed play. Update your state *)

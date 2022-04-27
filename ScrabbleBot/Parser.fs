@@ -156,7 +156,9 @@ module internal Parser
     (* The rest of your parser goes here *)
     type word   = (char * int) list
     type squareFun = word -> int -> int -> Result<int, Error>
+    //The word; the position in the word; accumulator ; then result
     type square = Map<int, squareFun>
+    //Priority ; squarefun
     let parseSquareProg (sqp:squareProg) : square = Map.map (fun _ v ->  stmntToSquareFun (getSuccess(run stmntParse v))) sqp
     type boardFun2 = coord -> Result<square option, Error>
         
@@ -165,7 +167,7 @@ module internal Parser
         defaultSquare : square
         squares       : boardFun2
     }
-    let parseBoardProg (s:string) (sqs:Map<int,square>) : boardFun2 = stmntToBoardFun2 (getSuccess (run stmntParse s)) sqs
+    let parseBoardProg (s:string) (sqs:Map<int,square>) : boardFun2 = stmntToBoardFun2 (getSuccess(run stmntParse s)) sqs
     // Default (unusable) board in case you are not implementing a parser for the DSL.
     let mkBoard (prog:boardProg) =
         let ds = parseSquareProg prog.squares[0]
