@@ -88,7 +88,7 @@ module Scrabble =
         
     let mutable legalMoves = List.empty
     
-    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor =
+    let rec ExtendRight (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j =
         let aux =
             if squareIsTerminal && legalMove partialWord anchor then
                 legalMoves <- partialWord :: legalMoves         
@@ -107,21 +107,22 @@ module Scrabble =
                     match step letter node with
                     | Some (b, node') -> 
                         let partialWord' = (square, letter) :: partialWord
-                        let square' = (fst square + 1, snd square)
-                        ExtendRight partialWord' node' square' state' b anchor
+                        let square' = (fst square + i, snd square + j)
+                        ExtendRight partialWord' node' square' state' b anchor i j
                     | None _ -> ()                
         else
             let l = state.actualBoard[square]
             match step l node with
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
-                let square' = (fst square + 1, snd square)
-                ExtendRight partialWord' node' square' state b anchor
+                let square' = (fst square + i, snd square + j)
+                ExtendRight partialWord' node' square' state b anchor i j
             | None _ -> ()
  
     let rec LeftPart (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
         for i in 0..limit do
-            ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square
+            ExtendRight partialWord dict (fst square - i, snd square) state isTerminal square 1 0
+            ExtendRight partialWord dict (fst square, snd square - i) state isTerminal square 0 1
                           
     let playGame cstream pieces (st : State.state) =
 
