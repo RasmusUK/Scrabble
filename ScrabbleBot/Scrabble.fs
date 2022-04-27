@@ -74,7 +74,21 @@ module Scrabble =
         match List.tryFind (fun x -> x = anchor) aux with
         | Some _ -> true
         | _ -> false
-    let crossCheck square letter state = true
+    let crossCheck square letter (state: State.state) i j=
+        let actualBoard' = Map.add square letter state.actualBoard
+        let rec findStart pos prevPos=
+            match Map.tryFind pos actualBoard' with
+            | Some _ -> findStart (fst pos - i, snd pos - j) pos
+            | None -> prevPos
+        let startPos = findStart square square
+        let rec isValid pos dict b =
+            match Map.tryFind pos actualBoard' with
+            | Some c ->      
+                match step c dict with
+                | Some (b,d') -> isValid (fst pos + i, snd pos + j) d' b
+                | None -> false
+            | None -> b
+        isValid startPos state.dict false                
     
     let allValidChars node =
         let letters = seq {for i in 1u..26u -> findChar i} |> Seq.toList
@@ -100,7 +114,7 @@ module Scrabble =
             aux |> ignore
             let validLetters = allValidChars node
             for letter in validLetters do
-                if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state then
+                if MultiSet.contains (charToValue letter) state.hand && crossCheck square letter state i j then
                     let hand' = MultiSet.removeSingle (charToValue letter) state.hand
                     let actualBoard' = Map.add square letter state.actualBoard
                     let state' = {state with hand = hand'; actualBoard = actualBoard' }
