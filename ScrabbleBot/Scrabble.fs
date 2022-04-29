@@ -173,9 +173,22 @@ module Scrabble =
         [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0 pieces sizeOfBoard)
         [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0 pieces sizeOfBoard)
     
+    let search (st: State.state) pieces sizeOfBoard = st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false pieces sizeOfBoard)
     let startSearch (st: State.state) pieces sizeOfBoard =
         bestMove <- []
-        st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false pieces sizeOfBoard)
+        search st pieces sizeOfBoard
+    let lastMove (st: State.state) pieces sizeOfBoard =
+        let chars = seq [1u..26u] |> Seq.toList
+        let rec aux hand' =
+            match hand' with
+            | [] -> ()
+            | x :: xs ->
+                let hand'' = MultiSet.addSingle x MultiSet.empty 
+                let st' = {st with hand = hand''}
+                search st' pieces sizeOfBoard
+                aux xs
+        aux chars 
+ 
     let firstMove (st: State.state) pieces sizeOfBoard =
         let hand = MultiSet.toList st.hand
         let rec aux hand' =
@@ -185,7 +198,7 @@ module Scrabble =
                 let hand'' = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand [x]
                 let actualBoard = [((0,0), findChar x)] |> Map.ofList
                 let st' = {st with hand = hand''; actualBoard = actualBoard}
-                startSearch st' pieces sizeOfBoard
+                search st' pieces sizeOfBoard
                 aux xs
         aux hand        
     
@@ -203,10 +216,26 @@ module Scrabble =
                     let x = fst (fst head)
                     let y = snd (fst head)
                     aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
-        (aux bestMove "").Trim()    
+        (aux bestMove "").Trim()
+    
+    let getLastPlay (st : State.state) =
+        let rec aux move acc =
+            match move with
+            | [] -> acc
+            | head :: tails ->
+                match Map.tryFind (fst head) st.actualBoard with
+                | Some _ -> aux tails acc
+                | None ->
+                    let pid = 0
+                    let char = snd head |> Char.ToString
+                    let pv = 0
+                    let x = fst (fst head)
+                    let y = snd (fst head)
+                    aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
+        (aux bestMove "").Trim()      
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
 
-        let rec aux (st : State.state) =
+        let rec aux (st : State.state) =           
             Print.printHand pieces (State.hand st)
             
             // remove the force print when you move on from manual input (or when you have learnt the format)
@@ -219,10 +248,18 @@ module Scrabble =
 
             //debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             if st.playerTurn = st.playerNumber then
-                if st.actualBoard.IsEmpty then firstMove st pieces 150
-                else startSearch st pieces 150              
-                let move = RegEx.parseMove (getPlay st pieces)
-                send cstream (SMPlay move)
+                if st.actualBoard.IsEmpty then
+                    firstMove st pieces 15
+                    let move = RegEx.parseMove (getPlay st pieces)
+                    send cstream (SMPlay move)
+                elif MultiSet.size st.hand = 1u && MultiSet.contains 0u st.hand then
+                    lastMove st pieces 15
+                    let move = RegEx.parseMove (getLastPlay st)
+                    send cstream (SMPlay move)
+                else
+                    startSearch st pieces 15                                
+                    let move = RegEx.parseMove (getPlay st pieces)
+                    send cstream (SMPlay move)
 
             let msg = recv cstream
             //debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
