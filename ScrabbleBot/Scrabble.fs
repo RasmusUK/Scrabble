@@ -50,10 +50,12 @@ module State =
         board         : Parser.board
         dict          : ScrabbleUtil.Dictionary.Dict
         playerNumber  : uint32
+        numPlayers    : uint32
+        playerTurn    : uint32
         hand          : MultiSet.MultiSet<uint32>
     }
 
-    let mkState ab b d pn h = {actualBoard = ab; board = b; dict = d;  playerNumber = pn; hand = h }
+    let mkState ab b d pn np pt h = {actualBoard = ab; board = b; dict = d;  playerNumber = pn; numPlayers = np; playerTurn = pt; hand = h }
 
     let board st         = st.board
     let dict st          = st.dict
@@ -206,32 +208,40 @@ module Scrabble =
 
         let rec aux (st : State.state) =
             Print.printHand pieces (State.hand st)
-    
+            
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
             
-            //if st.actualBoard.IsEmpty then firstMove st pieces 15
-            //else startSearch st pieces 15              
-            //let move = RegEx.parseMove (getPlay st pieces)
             
-            let input =  System.Console.ReadLine()
-            let move = RegEx.parseMove input
+            
+            //let input =  System.Console.ReadLine()
+            //let move = RegEx.parseMove input
 
-            debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
-            send cstream (SMPlay move)
+            //debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
+            if st.playerTurn = st.playerNumber then
+                if st.actualBoard.IsEmpty then firstMove st pieces 150
+                else startSearch st pieces 150              
+                let move = RegEx.parseMove (getPlay st pieces)
+                send cstream (SMPlay move)
 
             let msg = recv cstream
-            debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
+            //debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
 
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 let placedLetterIDs = List.fold (fun x y -> fst(snd(y)) :: x) [] ms
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
-                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}  
+                let playerTurn' =
+                    let newId = st.playerTurn + 1u
+                    if newId > st.numPlayers then 1u else newId                   
+                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}  
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
-                let st' = {st with actualBoard = updateActualBoard st ms}
+                let playerTurn' =
+                    let newId = st.playerTurn + 1u
+                    if newId > st.numPlayers then 1u else newId  
+                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
                 (* Failed play. Update your state *)
@@ -268,5 +278,4 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState Map.empty board dict playerNumber handSet)
-        
+        fun () -> playGame cstream tiles (State.mkState Map.empty board dict playerNumber numPlayers playerTurn handSet)         
