@@ -248,19 +248,21 @@ module Scrabble =
 
             //debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             if st.playerTurn = st.playerNumber then
+                let mutable str = ""
                 if st.actualBoard.IsEmpty then
                     firstMove st pieces 15
-                    let move = RegEx.parseMove (getPlay st pieces)
-                    send cstream (SMPlay move)
+                    str <- getPlay st pieces
                 elif MultiSet.size st.hand = 1u && MultiSet.contains 0u st.hand then
                     lastMove st pieces 15
-                    let move = RegEx.parseMove (getLastPlay st)
-                    send cstream (SMPlay move)
+                    str <- getLastPlay st
                 else
-                    startSearch st pieces 15                                
-                    let move = RegEx.parseMove (getPlay st pieces)
+                    startSearch st pieces 15
+                    str <- getPlay st pieces
+                if str = "" then send cstream SMPass
+                else 
+                    let move = RegEx.parseMove str
                     send cstream (SMPlay move)
-
+                    
             let msg = recv cstream
             //debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
 
@@ -282,12 +284,20 @@ module Scrabble =
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
                 (* Failed play. Update your state *)
-                let st' = st // This state needs to be updated
+                let playerTurn' =
+                    let newId = st.playerTurn + 1u
+                    if newId > st.numPlayers then 1u else newId  
+                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}
+                aux st'
+            | RCM (CMPassed i) ->
+                let playerTurn' =
+                    let newId = st.playerTurn + 1u
+                    if newId > st.numPlayers then 1u else newId  
+                let st' = {st with playerTurn = playerTurn'}
                 aux st'
             | RCM (CMGameOver _) -> ()
             | RCM a -> failwith $"not implmented: %A{a}"
             | RGPE err -> printfn $"Gameplay Error:\n%A{err}"; aux st
-
 
         aux st
 
