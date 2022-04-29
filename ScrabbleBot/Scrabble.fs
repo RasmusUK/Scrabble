@@ -66,15 +66,30 @@ module Scrabble =
     
     let findChar i = Convert.ToChar(i + 64u)
     
-    let charToValue (c:char) = Convert.ToUInt32(c) - 64u
+    let charToValue (c:char) = Convert.ToUInt32(c) - 64u    
+
+    let moveIsInsideBoard sizeOfBoard (partialWord:(coord * char) list ) =
+        let minus = - ((sizeOfBoard - 1) / 2)
+        let plus = ((sizeOfBoard - 1) / 2)
+        let rec aux move =
+            match move with
+            | [] -> true
+            | h :: t ->
+                let x = fst (fst h)
+                let y = snd (fst h)
+                if x < minus || x > plus || y < minus || y > plus then false
+                else aux t
+        aux partialWord
+    let legalMove (partialWord:(coord * char)list) anchor count sizeOfBoard =
+        let hasPlacedTile =
+            if count > 0 then
+                let aux = List.map fst partialWord
+                match List.tryFind (fun x -> x = anchor) aux with
+                | Some _ -> true
+                | _ -> false
+            else false
+        moveIsInsideBoard sizeOfBoard partialWord && hasPlacedTile
         
-    let legalMove (partialWord:(coord * char)list) anchor count =
-        if count > 0 then
-            let aux = List.map fst partialWord
-            match List.tryFind (fun x -> x = anchor) aux with
-            | Some _ -> true
-            | _ -> false
-        else false    
     let crossCheck square letter (state: State.state) i j =
         let actualBoard' = Map.add square letter state.actualBoard
         let rec findStart pos =
@@ -119,13 +134,13 @@ module Scrabble =
         if newMovePoints > currentMovePoints then
             bestMove <- move
                
-    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count pieces =
+    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count pieces sizeOfBoard =
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
             | None -> true
         if isVacant then
-            if squareIsTerminal && legalMove partialWord anchor count then
+            if squareIsTerminal && legalMove partialWord anchor count sizeOfBoard then
                 updateBestMove partialWord pieces
             let validLetters = allValidChars node
             let rec aux = function
@@ -139,7 +154,7 @@ module Scrabble =
                         | Some (b, node') -> 
                             let partialWord' = (square, letter) :: partialWord
                             let square' = (fst square + i, snd square + j)
-                            extend partialWord' node' square' state' b anchor i j (count + 1) pieces
+                            extend partialWord' node' square' state' b anchor i j (count + 1) pieces sizeOfBoard
                         | None _ -> ()
                     aux tail
             aux validLetters                  
@@ -149,17 +164,17 @@ module Scrabble =
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
                 let square' = (fst square + i, snd square + j)
-                extend partialWord' node' square' state b anchor i j count pieces
+                extend partialWord' node' square' state b anchor i j count pieces sizeOfBoard
             | None _ -> ()
  
-    let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal pieces =
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0 pieces)
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0 pieces)
+    let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal pieces sizeOfBoard =
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0 pieces sizeOfBoard)
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0 pieces sizeOfBoard)
     
-    let startSearch (st: State.state) pieces =
+    let startSearch (st: State.state) pieces sizeOfBoard =
         bestMove <- []
-        st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false pieces)
-    let firstMove (st: State.state) pieces =
+        st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false pieces sizeOfBoard)
+    let firstMove (st: State.state) pieces sizeOfBoard =
         let hand = MultiSet.toList st.hand
         let rec aux hand' =
             match hand' with
@@ -168,7 +183,7 @@ module Scrabble =
                 let hand'' = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand [x]
                 let actualBoard = [((0,0), findChar x)] |> Map.ofList
                 let st' = {st with hand = hand''; actualBoard = actualBoard}
-                startSearch st' pieces
+                startSearch st' pieces sizeOfBoard
                 aux xs
         aux hand        
     
@@ -196,8 +211,8 @@ module Scrabble =
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
             //let input =  System.Console.ReadLine()
             
-            if st.actualBoard.IsEmpty then firstMove st pieces
-            else startSearch st pieces
+            if st.actualBoard.IsEmpty then firstMove st pieces 150
+            else startSearch st pieces 150
                             
             let move = RegEx.parseMove (getPlay st pieces)
 
