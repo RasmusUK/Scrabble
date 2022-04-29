@@ -1,6 +1,7 @@
 ﻿namespace YourClientName
 
 open System
+open System.ComponentModel
 open Microsoft.FSharp.Collections
 open ScrabbleUtil
 open ScrabbleUtil.Dictionary
@@ -100,17 +101,32 @@ module Scrabble =
                 | Some _ -> aux (x :: validLetters) xs
                 | None _ -> aux validLetters xs
         aux [] letters
-        
-    let mutable legalMoves = List.empty
+          
+    let mutable bestMove = List.empty
     
-    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count =
+    let getBasePointsOfMove (move : (coord * char)list) (pieces: Map<uint32, tile>) =
+        let rec aux move' acc =
+            match move' with
+            | [] -> acc
+            | x :: xs ->
+                let pid = snd x |> charToValue
+                let pv = Map.find pid pieces |> Set.maxElement |> snd
+                aux xs (acc + pv)
+        aux move 0   
+    let updateBestMove move pieces =
+        let currentMovePoints = getBasePointsOfMove bestMove pieces
+        let newMovePoints = getBasePointsOfMove move pieces
+        if newMovePoints > currentMovePoints then
+            bestMove <- move
+               
+    let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count pieces =
         let isVacant =
             match Map.tryFind square state.actualBoard with
             | Some _ -> false
             | None -> true
         if isVacant then
             if squareIsTerminal && legalMove partialWord anchor count then
-                legalMoves <- partialWord :: legalMoves     
+                updateBestMove partialWord pieces
             let validLetters = allValidChars node
             let rec aux = function
                 | [] -> ()
@@ -123,7 +139,7 @@ module Scrabble =
                         | Some (b, node') -> 
                             let partialWord' = (square, letter) :: partialWord
                             let square' = (fst square + i, snd square + j)
-                            extend partialWord' node' square' state' b anchor i j (count + 1)
+                            extend partialWord' node' square' state' b anchor i j (count + 1) pieces
                         | None _ -> ()
                     aux tail
             aux validLetters                  
@@ -133,13 +149,44 @@ module Scrabble =
             | Some (b,node') ->
                 let partialWord' = (square, l) :: partialWord
                 let square' = (fst square + i, snd square + j)
-                extend partialWord' node' square' state b anchor i j count
+                extend partialWord' node' square' state b anchor i j count pieces
             | None _ -> ()
  
-    let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal =
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0)
-        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0)
-                          
+    let rec findAllWords (partialWord:(coord * char)list) dict square limit (state : State.state) isTerminal pieces =
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square - i, snd square) state isTerminal square 1 0 0 pieces)
+        [0..limit] |> List.iter(fun i -> extend partialWord dict (fst square, snd square - i) state isTerminal square 0 1 0 pieces)
+    
+    let startSearch (st: State.state) pieces =
+        bestMove <- []
+        st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false pieces)
+    let firstMove (st: State.state) pieces =
+        let hand = MultiSet.toList st.hand
+        let rec aux hand' =
+            match hand' with
+            | [] -> ()
+            | x :: xs ->
+                let hand'' = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand [x]
+                let actualBoard = [((0,0), findChar x)] |> Map.ofList
+                let st' = {st with hand = hand''; actualBoard = actualBoard}
+                startSearch st' pieces
+                aux xs
+        aux hand        
+    
+    let getPlay (st : State.state) pieces =
+        let rec aux move acc =
+            match move with
+            | [] -> acc
+            | head :: tails ->
+                match Map.tryFind (fst head) st.actualBoard with
+                | Some _ -> aux tails acc
+                | None ->
+                    let pid = snd head |> charToValue
+                    let char = snd head |> Char.ToString
+                    let pv = Map.find pid pieces |> Set.maxElement |> snd
+                    let x = fst (fst head)
+                    let y = snd (fst head)
+                    aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
+        (aux bestMove "").Trim()    
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
 
         let rec aux (st : State.state) =
@@ -148,33 +195,11 @@ module Scrabble =
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
             //let input =  System.Console.ReadLine()
-            let hand = MultiSet.toList st.hand
-            if st.actualBoard.IsEmpty then 
-                for move in hand do
-                    let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand [move]
-                    let ab = [((0,0), findChar move)] |> Map.ofList
-                    let st = {st with hand = hand; actualBoard = ab}
-                    st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false) 
-            else
-                st.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st.dict x (MultiSet.size st.hand |> int) st false) 
-
-             
-            let sorted = List.sortByDescending (fun (x:(coord*char) list) -> x.Length ) legalMoves
-            let best = sorted.Head
-            let mutable input = ""
-            for tuple in best do
-                match Map.tryFind (fst tuple) st.actualBoard with
-                | Some _ -> ()
-                | None -> 
-                    let pid = snd tuple |> charToValue
-                    let char = snd tuple |> Char.ToString
-                    let pv = Map.find pid pieces |> Set.maxElement |> snd
-                    let x = fst (fst tuple)
-                    let y = snd (fst tuple)
-                    input <-  input + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} "
-            input <- input.Trim()
-            legalMoves <- []
-            let move = RegEx.parseMove input
+            
+            if st.actualBoard.IsEmpty then firstMove st pieces
+            else startSearch st pieces
+                            
+            let move = RegEx.parseMove (getPlay st pieces)
 
             debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             send cstream (SMPlay move)
@@ -187,14 +212,10 @@ module Scrabble =
                 let placedLetterIDs = List.fold (fun x y -> fst(snd(y)) :: x) [] ms
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
                 let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
-                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}
-                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
-                legalMoves <- []   
+                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms}  
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 let st' = {st with actualBoard = updateActualBoard st ms}
-                st'.actualBoard |> Map.toSeq |> List.ofSeq |> List.map fst |> List.iter (fun x -> findAllWords [] st'.dict x (MultiSet.size st'.hand |> int) st' false) 
-                legalMoves <- []  
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
                 (* Failed play. Update your state *)
