@@ -136,8 +136,7 @@ module Scrabble =
     let updateBestMove move pieces =
         let currentMovePoints = getBasePointsOfMove bestMove pieces
         let newMovePoints = getBasePointsOfMove move pieces
-        if newMovePoints > currentMovePoints then
-            bestMove <- move
+        if newMovePoints > currentMovePoints then bestMove <- move
                
     let rec extend (partialWord:(coord * char)list) (node : Dict) square (state : State.state) squareIsTerminal anchor i j count pieces sizeOfBoard =
         let isVacant =
@@ -145,8 +144,7 @@ module Scrabble =
             | Some _ -> false
             | None -> true
         if isVacant then
-            if squareIsTerminal && legalMove partialWord anchor count sizeOfBoard then
-                updateBestMove partialWord pieces
+            if squareIsTerminal && legalMove partialWord anchor count sizeOfBoard then updateBestMove partialWord pieces
             let validLetters = allValidChars node
             let rec aux = function
                 | [] -> ()
@@ -237,9 +235,7 @@ module Scrabble =
                     aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
         (aux bestMove "").Trim()      
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
-
         let rec aux (st : State.state) =
-            
             let doMove str =
                 if str = "" then send cstream SMPass
                 else send cstream (SMPlay (RegEx.parseMove str))
