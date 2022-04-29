@@ -209,12 +209,13 @@ module Scrabble =
     
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
-            //let input =  System.Console.ReadLine()
             
-            if st.actualBoard.IsEmpty then firstMove st pieces 150
-            else startSearch st pieces 150
-                            
-            let move = RegEx.parseMove (getPlay st pieces)
+            //if st.actualBoard.IsEmpty then firstMove st pieces 15
+            //else startSearch st pieces 15              
+            //let move = RegEx.parseMove (getPlay st pieces)
+            
+            let input =  System.Console.ReadLine()
+            let move = RegEx.parseMove input
 
             debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             send cstream (SMPlay move)
