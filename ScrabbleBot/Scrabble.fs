@@ -66,6 +66,9 @@ module Scrabble =
     open System.Threading
     let updateActualBoard (st:State.state) ms = List.fold (fun m x -> Map.add (fst x) (snd x |> snd |> fst) m) st.actualBoard ms
     
+    let updatePlayerTurn (st:State.state) =
+                let newId = st.playerTurn + 1u
+                if newId > st.numPlayers then 1u else newId 
     let findChar i = Convert.ToChar(i + 64u)
     
     let charToValue (c:char) = Convert.ToUInt32(c) - 64u    
@@ -177,7 +180,7 @@ module Scrabble =
     let startSearch (st: State.state) pieces sizeOfBoard =
         bestMove <- []
         search st pieces sizeOfBoard
-    let lastMove (st: State.state) pieces sizeOfBoard =
+    let blankMove (st: State.state) pieces sizeOfBoard =
         let chars = seq [1u..26u] |> Seq.toList
         let rec aux hand' =
             match hand' with
@@ -189,7 +192,7 @@ module Scrabble =
                 aux xs
         aux chars 
  
-    let firstMove (st: State.state) pieces sizeOfBoard =
+    let firstMoveSearch (st: State.state) pieces sizeOfBoard =
         let hand = MultiSet.toList st.hand
         let rec aux hand' =
             match hand' with
@@ -218,7 +221,7 @@ module Scrabble =
                     aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
         (aux bestMove "").Trim()
     
-    let getLastPlay (st : State.state) =
+    let getBlankPlay (st : State.state) =
         let rec aux move acc =
             match move with
             | [] -> acc
@@ -235,65 +238,40 @@ module Scrabble =
         (aux bestMove "").Trim()      
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
 
-        let rec aux (st : State.state) =           
-            Print.printHand pieces (State.hand st)
+        let rec aux (st : State.state) =
             
-            // remove the force print when you move on from manual input (or when you have learnt the format)
-            forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
+            let doMove str =
+                if str = "" then send cstream SMPass
+                else send cstream (SMPlay (RegEx.parseMove str))
             
-            
-            
-            //let input =  System.Console.ReadLine()
-            //let move = RegEx.parseMove input
-
-            //debugPrint $"Player %d{State.playerNumber st} -> Server:\n%A{move}\n" // keep the debug lines. They are useful.
             if st.playerTurn = st.playerNumber then
-                let mutable str = ""
                 if st.actualBoard.IsEmpty then
-                    firstMove st pieces 15
-                    str <- getPlay st pieces
+                    firstMoveSearch st pieces 15
+                    doMove (getPlay st pieces)
                 elif MultiSet.size st.hand = 1u && MultiSet.contains 0u st.hand then
-                    lastMove st pieces 15
-                    str <- getLastPlay st
+                    blankMove st pieces 15
+                    doMove (getPlay st pieces)
                 else
                     startSearch st pieces 15
-                    str <- getPlay st pieces
-                if str = "" then send cstream SMPass
-                else 
-                    let move = RegEx.parseMove str
-                    send cstream (SMPlay move)
-                    
+                    doMove (getPlay st pieces)
+       
             let msg = recv cstream
-            //debugPrint $"Player %d{State.playerNumber st} <- Server:\n%A{move}\n" // keep the debug lines. They are useful.
-
+                       
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 let placedLetterIDs = List.fold (fun x y -> fst(snd(y)) :: x) [] ms
                 let hand = List.fold (fun x y -> MultiSet.removeSingle y x) st.hand placedLetterIDs
-                let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces
-                let playerTurn' =
-                    let newId = st.playerTurn + 1u
-                    if newId > st.numPlayers then 1u else newId                   
-                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}  
+                let hand' = List.fold (fun x y -> MultiSet.add(fst(y)) (snd(y)) x) hand newPieces                             
+                let st' = {st with hand = hand'; actualBoard = updateActualBoard st ms; playerTurn = updatePlayerTurn st}  
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
-                let playerTurn' =
-                    let newId = st.playerTurn + 1u
-                    if newId > st.numPlayers then 1u else newId  
-                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}
+                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = updatePlayerTurn st}
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
-                (* Failed play. Update your state *)
-                let playerTurn' =
-                    let newId = st.playerTurn + 1u
-                    if newId > st.numPlayers then 1u else newId  
-                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = playerTurn'}
+                let st' = {st with actualBoard = updateActualBoard st ms; playerTurn = updatePlayerTurn st}
                 aux st'
-            | RCM (CMPassed i) ->
-                let playerTurn' =
-                    let newId = st.playerTurn + 1u
-                    if newId > st.numPlayers then 1u else newId  
-                let st' = {st with playerTurn = playerTurn'}
+            | RCM (CMPassed i) -> 
+                let st' = {st with playerTurn = updatePlayerTurn st}
                 aux st'
             | RCM (CMGameOver _) -> ()
             | RCM a -> failwith $"not implmented: %A{a}"
