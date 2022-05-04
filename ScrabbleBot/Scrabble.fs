@@ -234,7 +234,13 @@ module Scrabble =
                     let y = snd (fst head)
                     aux tails (acc + $"%i{x} %i{y} %i{pid}%s{char}%i{pv} ")
         (aux bestMove "").Trim()      
-    let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) =
+    
+    let getBoardSize boardP =
+        match boardP.isInfinite with
+        |true -> Int32.MaxValue
+        |false -> 15
+        
+    let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) (boardP:boardProg) =
         let rec aux (st : State.state) =
             let doMove str =
                 if str = "" then send cstream SMPass
@@ -242,13 +248,13 @@ module Scrabble =
             
             if st.playerTurn = st.playerNumber then
                 if st.actualBoard.IsEmpty then
-                    firstMoveSearch st pieces 15
+                    firstMoveSearch st pieces (getBoardSize boardP)
                     doMove (getPlay st pieces)
                 elif MultiSet.size st.hand = 1u && MultiSet.contains 0u st.hand then
-                    blankMove st pieces 15
+                    blankMove st pieces (getBoardSize boardP)
                     doMove (getPlay st pieces)
                 else
-                    startSearch st pieces 15
+                    startSearch st pieces (getBoardSize boardP)
                     doMove (getPlay st pieces)
        
             let msg = recv cstream
@@ -299,4 +305,4 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState Map.empty board dict playerNumber numPlayers playerTurn handSet)         
+        fun () -> playGame cstream tiles (State.mkState Map.empty board dict playerNumber numPlayers playerTurn handSet) boardP         
