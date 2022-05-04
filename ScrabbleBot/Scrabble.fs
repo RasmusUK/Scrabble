@@ -168,7 +168,7 @@ module Scrabble =
             evalWords 0 pieces state
         let word = List.map(fun x -> (snd x,pieces[charToValue(snd x)] |> Set.maxElement |> snd)) (snd move)
         let p = evalWord (snd move) word 0 state cross
-        if (snd move).Length = 7 then p + 50 else p 
+        if (getNewCoordsFromMove move state).Length = 7 then p + 50 else p 
         //getCrossCheckPointsForWord state pieces (getPointsForWord move pieces state true 0) move
     let updateBestMove move pieces state =
         let currentMovePoints = evalMove bestMove pieces state 
