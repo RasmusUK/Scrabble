@@ -150,8 +150,8 @@ module internal Parser
         binop pdo b (parenthesise2 S1Parse) |>> While <?> "While"
     let SPare = parenthesise2 S1Parse
     
-    do s1ref := choice [SSeq; SITE; SWHILE; S2Parse]
-    do s2ref := choice [SDeclareParse; SAssParse]
+    do s1ref := choice [SSeq;  S2Parse]
+    do s2ref := choice [SITE; SWHILE; SDeclareParse; SAssParse]
 
     (* The rest of your parser goes here *)
     type word   = (char * int) list
