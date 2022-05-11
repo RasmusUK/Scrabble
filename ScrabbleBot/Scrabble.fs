@@ -262,20 +262,22 @@ module Scrabble =
         |false -> 15
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) (boardP:boardProg) =
         let rec aux (st : State.state) =
-            let doMove str =
-                if str = "" then send cstream SMPass
-                else send cstream (SMPlay (RegEx.parseMove str))
+            
+            let doMove = function
+                | str when str = "" -> send cstream SMPass
+                | str -> send cstream (SMPlay (RegEx.parseMove str))
+                
             if st.playerTurn = st.playerNumber then
                 if st.tempBoard.IsEmpty then
-                    firstMoveSearch st pieces (getBoardSize boardP)
-                    doMove (getPlay st pieces)
+                    firstMoveSearch st pieces (getBoardSize boardP)                   
                 elif MultiSet.size st.hand = 1u && MultiSet.contains 0u st.hand then
                     blankMove st pieces (getBoardSize boardP)
-                    doMove (getPlay st pieces)
                 else
                     startSearch st pieces (getBoardSize boardP)
-                    doMove (getPlay st pieces)
-            let msg = recv cstream           
+                doMove (getPlay st pieces)
+                    
+            let msg = recv cstream
+            
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 let placedLetterIDs = List.fold (fun x y -> fst(snd(y)) :: x) [] ms
