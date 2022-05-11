@@ -12,9 +12,8 @@ module internal Parser
     open FParsecLight.TextParser     // Industrial parser-combinator library. Use for Scrabble Project.
     
     
-    let pIntToChar  = pstring "intToChar"
+    let pIntToChar = pstring "intToChar"
     let pPointValue = pstring "pointValue"
-
     let pCharToInt  = pstring "charToInt"
     let pToUpper    = pstring "toUpper"
     let pToLower    = pstring "toLower"
@@ -22,9 +21,9 @@ module internal Parser
 
     let pTrue       = pstring "true"
     let pFalse      = pstring "false"
-    let pIsDigit    = pstring "isDigit"
-    let pIsLetter   = pstring "isLetter"
-    let pIsVowel   = pstring "isVowel"
+    let pIsDigit    = pstring "IsDigit"
+    let pIsLetter   = pstring "IsLetter"
+    let pIsVowel   = pstring "IsVowel"
 
     let pif       = pstring "if"
     let pthen     = pstring "then"
@@ -33,27 +32,26 @@ module internal Parser
     let pdo       = pstring "do"
     let pdeclare  = pstring "declare"
 
+    let whitespaceChar = satisfy System.Char.IsWhiteSpace <?> "whitespace"
+    let pletter        = satisfy System.Char.IsLetter <?> "letter"
+    let palphanumeric  = satisfy System.Char.IsLetterOrDigit <?> "alphanumeric"
+
+    let spaces         = many (satisfy System.Char.IsWhiteSpace <?> "space") 
+    let spaces1        = many1 (satisfy System.Char.IsWhiteSpace <?> "space1") 
     
-    let pletter        = satisfy Char.IsLetter <?> "letter"
-    let palphanumeric  = satisfy Char.IsLetterOrDigit <?> "alphanumeric"
-    let whitespaceChar = satisfy Char.IsWhiteSpace <?> "whitespace"
-    let spaces         = many whitespaceChar <?> "space"
-    let spaces1        = many1 whitespaceChar <?> "space1"
-
-    let (.>*>.) p1 p2 = p1 .>> spaces .>>. p2 <?> "Unexpected ' ' at start"
-    let (.>*>) p1 p2 = p1 .>> spaces .>> p2
-    let (>*>.) p1 p2  = p1 .>> spaces >>. p2
-
-    let parenthesise p = pchar '(' >*>. p .>*> pchar ')' <?> "Unexpected char"
+    let (.>*>.) (a:Parser<'a>) (b:Parser<'b>) : Parser<'a*'b>= (spaces >>. a .>> spaces) .>>. (b .>> spaces)
+    let (.>*>) (a:Parser<'a>) (b:Parser<'b>) : Parser<'a>= (spaces >>. a .>> spaces) .>> (b .>> spaces)
+    let (>*>.) (a:Parser<'a>) (b:Parser<'b>) : Parser<'b>= (spaces >>. a .>> spaces) >>. (b .>> spaces)
+    let parenthesise p = pchar '(' >*>. p .>*> pchar ')'
     let parenthesise2 p = pchar '{' >*>. p .>*> pchar '}'
-    
-    let palphanumericsOrUnderscore = many (palphanumeric <|> pchar '_')
-    
-    let pid =  ((pletter <|> pchar '_' .>>. palphanumericsOrUnderscore) |>> (fun r -> fst(r) :: snd(r)) |>> fun l -> String(List.toArray l) |> string) <?> "identifier"
-    let unop p1 p2 = p1 >*>. p2
-    
-    let binop op p1 p2 = p1 .>*> op .>*>. p2
 
+    
+    let pid =
+        let aux (x : char list) = List.foldBack (fun a b -> a.ToString() + b.ToString()) x ""
+        pletter <|> pchar '_' .>>. many (satisfy (fun x -> System.Char.IsLetterOrDigit x || x = '_' ) <?> "pid") |>> fun(x,y) -> (x.ToString() + aux y)
+    
+    let unop = fun x y -> x >*>. y
+    let binop op a b = (a .>*> op) .>*>. b 
 
     let TermParse, tref = createParserForwardedToRef<aExp>()
     let ProdParse, pref = createParserForwardedToRef<aExp>()
