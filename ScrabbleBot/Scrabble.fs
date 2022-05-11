@@ -84,15 +84,26 @@ module Scrabble =
                 if x < minus || x > plus || y < minus || y > plus then false
                 else aux t
         aux partialWord
-    let legalMove (partialWord:(coord * char)list) anchor count sizeOfBoard =
-        let hasPlacedTile =
+    let moveIsNotOnBlank (partialWord:(coord * char)list) (st: State.state) =
+        let rec aux = function
+            | [] -> true
+            | x :: xs ->
+                match st.board.squares (fst x) with
+                | Success n ->
+                    match n with
+                    | Some _ -> aux xs
+                    | _ -> false
+                | _ -> false
+        aux partialWord
+    let hasPlacedTile (partialWord:(coord * char)list) anchor count =
             if count > 0 then
                 let aux = List.map fst partialWord
                 match List.tryFind (fun x -> x = anchor) aux with
                 | Some _ -> true
                 | _ -> false
             else false
-        moveIsInsideBoard sizeOfBoard partialWord && hasPlacedTile
+    let legalMove (partialWord:(coord * char)list) anchor count sizeOfBoard (st : State.state) =    
+        moveIsInsideBoard sizeOfBoard partialWord && hasPlacedTile partialWord anchor count && moveIsNotOnBlank partialWord st
     let crossCheck square letter (state: State.state) i j =
         let actualBoard' = Map.add square letter state.tempBoard
         let rec findStart pos =
@@ -181,7 +192,7 @@ module Scrabble =
             | Some (b,node') -> extend ((square, l) :: partialWord) node' (fst square + i, snd square + j) state b anchor i j count pieces sizeOfBoard
             | None _ -> ()
         | None ->
-            if squareIsTerminal && legalMove partialWord anchor count sizeOfBoard then updateBestMove ((j,i),partialWord) pieces state
+            if squareIsTerminal && legalMove partialWord anchor count sizeOfBoard state then updateBestMove ((j,i),partialWord) pieces state
             let rec aux = function
                 | [] -> ()
                 | letter :: tail -> 
@@ -260,7 +271,7 @@ module Scrabble =
         |false -> 15
     let playGame cstream (pieces: Map<uint32, tile>) (st : State.state) (boardP:boardProg) =
         let rec aux (st : State.state) =
-            
+                        
             let doMove = function
                 | str when str = "" -> send cstream SMPass
                 | str -> send cstream (SMPlay (RegEx.parseMove str))
