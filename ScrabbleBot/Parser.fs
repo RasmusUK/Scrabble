@@ -168,12 +168,11 @@ module internal Parser
         squares       : boardFun2
     }
     let parseBoardProg (s:string) (sqs:Map<int,square>) : boardFun2 = stmntToBoardFun2 (getSuccess(run stmntParse s)) sqs
-    // Default (unusable) board in case you are not implementing a parser for the DSL.
     let mkBoard (prog:boardProg) =
         let ds = parseSquareProg prog.squares[0]
         let sq = parseBoardProg prog.prog (Map.map (fun _ -> parseSquareProg) prog.squares)
         {
-        center        = (0,0)
+        center        = prog.center
         defaultSquare = ds
         squares       = sq
     }
